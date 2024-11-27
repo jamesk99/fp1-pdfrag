@@ -1,9 +1,8 @@
 """
-Project: 
-PDF-based Retrieval-Augmented Generation (RAG) using Ollama + LangChain.
+Project: PDF-based Retrieval-Augmented Generation (RAG) using Ollama + LangChain.
 
-Description:
-Allow users to upload a PDF and then ask questions about the content using a local model.
+Description: Allow users to upload a PDF 
+and then ask questions about the content using a local model.
 """
 
 import streamlit as st

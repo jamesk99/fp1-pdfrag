@@ -81,9 +81,139 @@ def create_vector_db(file_upload) -> Chroma:
     logger.info(f"Creating vector DB from file upload: {file_upload.name}")
     temp_dir = tempfile.mkdtemp()
 
-        # Create layout
-    col1, col2 = st.columns([1.5, 2])
+    path = os.path.join(temp_dir, file_upload.name)
+    with open(path, "wb") as f:
+        f.write(file_upload.getvalue())
+        logger.info(f"PDF file saved to temporary directory: {path}")
+        loader = UnstructuredPDFLoader(path)
+        data = loader.load()
 
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=7500, chunk_overlap=100)
+    chunks = text_splitter.split_documents(data)
+    logger.info("Document split into chunks")
+
+    # Updated embeddings configuration
+    embeddings = OllamaEmbeddings(model="nomic-embed-text")
+    vector_db = Chroma.from_documents(
+        documents=chunks,
+        embedding=embeddings,
+        collection_name="myRAG"
+    )
+    logger.info("Vector DB created")
+
+    shutil.rmtree(temp_dir)
+    logger.info(f"Temporary directory {temp_dir} removed")
+    return vector_db
+
+
+def process_question(question: str, vector_db: Chroma, selected_model: str) -> str:
+    """
+    Process a user question using the vector database and selected language model.
+
+    Args:
+        question (str): The user's question.
+        vector_db (Chroma): The vector database containing document embeddings.
+        selected_model (str): The name of the selected language model.
+
+    Returns:
+        str: The generated response to the user's question.
+    """
+    logger.info(f"Processing question: {question} using model: {selected_model}")
+    
+    # Initialize LLM
+    llm = ChatOllama(model=selected_model)
+    
+    # Query prompt template
+    QUERY_PROMPT = PromptTemplate(
+        input_variables=["question"],
+        template="""You are an AI language model assistant. Your task is to generate 2
+        different versions of the given user question to retrieve relevant documents from
+        a vector database. By generating multiple perspectives on the user question, your
+        goal is to help the user overcome some of the limitations of the distance-based
+        similarity search. Provide these alternative questions separated by newlines.
+        Original question: {question}""",
+    )
+
+    # Set up retriever
+    retriever = MultiQueryRetriever.from_llm(
+        vector_db.as_retriever(), 
+        llm,
+        prompt=QUERY_PROMPT
+    )
+
+    # RAG prompt template
+    template = """Answer the question based ONLY on the following context:
+    {context}
+    Question: {question}
+    """
+
+    prompt = ChatPromptTemplate.from_template(template)
+
+    # Create chain
+    chain = (
+        {"context": retriever, "question": RunnablePassthrough()}
+        | prompt
+        | llm
+        | StrOutputParser()
+    )
+
+    response = chain.invoke(question)
+    logger.info("Question processed and response generated")
+    return response
+
+
+@st.cache_data
+def extract_all_pages_as_images(file_upload) -> List[Any]:
+    """
+    Extract all pages from a PDF file as images.
+
+    Args:
+        file_upload (st.UploadedFile): Streamlit file upload object containing the PDF.
+
+    Returns:
+        List[Any]: A list of image objects representing each page of the PDF.
+    """
+    logger.info(f"Extracting all pages as images from file: {file_upload.name}")
+    pdf_pages = []
+    with pdfplumber.open(file_upload) as pdf:
+        pdf_pages = [page.to_image().original for page in pdf.pages]
+    logger.info("PDF pages extracted as images")
+    return pdf_pages
+
+
+def delete_vector_db(vector_db: Optional[Chroma]) -> None:
+    """
+    Delete the vector database and clear related session state.
+
+    Args:
+        vector_db (Optional[Chroma]): The vector database to be deleted.
+    """
+    logger.info("Deleting vector DB")
+    if vector_db is not None:
+        vector_db.delete_collection()
+        st.session_state.pop("pdf_pages", None)
+        st.session_state.pop("file_upload", None)
+        st.session_state.pop("vector_db", None)
+        st.success("Collection and temporary files deleted successfully.")
+        logger.info("Vector DB and related session state cleared")
+        st.rerun()
+    else:
+        st.error("No vector database found to delete.")
+        logger.warning("Attempted to delete vector DB, but none was found")
+
+
+def main() -> None:
+    """
+    Main function to run the Streamlit application.
+    """
+    st.subheader("Ollama PDF RAG playground", divider="gray", anchor=False)
+
+    # Get available models
+    models_info = ollama.list()
+    available_models = extract_model_names(models_info)
+
+    # Create layout
+    col1, col2 = st.columns([1.5, 2])
 
     # Initialize session state
     if "messages" not in st.session_state:
@@ -93,7 +223,6 @@ def create_vector_db(file_upload) -> Chroma:
     if "use_sample" not in st.session_state:
         st.session_state["use_sample"] = False
 
-
     # Model selection
     if available_models:
         selected_model = col2.selectbox(
@@ -101,7 +230,6 @@ def create_vector_db(file_upload) -> Chroma:
             available_models,
             key="model_select"
         )
-
 
     # Add checkbox for sample PDF
     use_sample = col1.toggle(
@@ -116,7 +244,6 @@ def create_vector_db(file_upload) -> Chroma:
             st.session_state["vector_db"] = None
             st.session_state["pdf_pages"] = None
         st.session_state["use_sample"] = use_sample
-
 
     if use_sample:
         # Use the sample PDF
@@ -148,14 +275,12 @@ def create_vector_db(file_upload) -> Chroma:
             key="pdf_uploader"
         )
 
-
         if file_upload:
             if st.session_state["vector_db"] is None:
                 with st.spinner("Processing uploaded PDF..."):
                     st.session_state["vector_db"] = create_vector_db(file_upload)
                     pdf_pages = extract_all_pages_as_images(file_upload)
                     st.session_state["pdf_pages"] = pdf_pages
-
 
     # Display PDF if pages are available
     if "pdf_pages" in st.session_state and st.session_state["pdf_pages"]:
@@ -169,14 +294,12 @@ def create_vector_db(file_upload) -> Chroma:
             key="zoom_slider"
         )
 
-
         # Display PDF pages
         with col1:
             with st.container(height=410, border=True):
                 # Removed the key parameter from st.image()
                 for page_image in st.session_state["pdf_pages"]:
                     st.image(page_image, width=zoom_level)
-
 
     # Delete collection button
     delete_collection = col1.button(
@@ -185,15 +308,12 @@ def create_vector_db(file_upload) -> Chroma:
         key="delete_button"
     )
 
-
     if delete_collection:
         delete_vector_db(st.session_state["vector_db"])
-
 
     # Chat interface
     with col2:
         message_container = st.container(height=500, border=True)
-
 
         # Display chat history
         for i, message in enumerate(st.session_state["messages"]):
@@ -236,7 +356,6 @@ def create_vector_db(file_upload) -> Chroma:
         else:
             if st.session_state["vector_db"] is None:
                 st.warning("Upload a PDF file or use the sample PDF to begin chat...")
-
 
 if __name__ == "__main__":
     main()

@@ -105,7 +105,7 @@ def create_vector_db(file_upload) -> Chroma:
 
     # Add checkbox for sample PDF
     use_sample = col1.toggle(
-        "Use sample PDF (Scammer Agent Paper)", 
+        "Use sample PDF (Austrian Economics)", 
         key="sample_checkbox"
     )
     

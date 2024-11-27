@@ -238,7 +238,5 @@ def create_vector_db(file_upload) -> Chroma:
                 st.warning("Upload a PDF file or use the sample PDF to begin chat...")
 
 
-
-
 if __name__ == "__main__":
     main()

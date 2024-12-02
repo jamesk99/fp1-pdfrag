@@ -23,6 +23,8 @@ from langchain_ollama.chat_models import ChatOllama
 from langchain_core.runnables import RunnablePassthrough
 from langchain.retrievers.multi_query import MultiQueryRetriever
 from typing import List, Tuple, Dict, Any, Optional
+from langchain_ollama import ChatOllama, chat_models, OllamaEmbeddings, OllamaLLM
+from langchain_community.vectorstores import Chroma
 
 # Set protobuf environment variable to avoid error messages
 # This might cause some issues with latency but it's a tradeoff
@@ -87,7 +89,7 @@ def create_vector_db(file_upload) -> Chroma:
         loader = UnstructuredPDFLoader(path)
         data = loader.load()
 
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=7500, chunk_overlap=100)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     chunks = text_splitter.split_documents(data)
     logger.info("Document split into chunks")
 
@@ -228,7 +230,7 @@ def main() -> None:
             "Pick a model available locally on your system ↓", 
             available_models,
             key="model_select"
-        )
+    )
 
     # Add checkbox for sample PDF
     use_sample = col1.toggle(
@@ -252,7 +254,7 @@ def main() -> None:
                 with st.spinner("Processing sample PDF..."):
                     loader = UnstructuredPDFLoader(file_path=sample_path)
                     data = loader.load()
-                    text_splitter = RecursiveCharacterTextSplitter(chunk_size=7500, chunk_overlap=100)
+                    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
                     chunks = text_splitter.split_documents(data)
                     st.session_state["vector_db"] = Chroma.from_documents(
                         documents=chunks,

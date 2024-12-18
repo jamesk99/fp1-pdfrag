@@ -1,14 +1,22 @@
-# Test 1: Check Visual C++ version
 import sys
 import subprocess
 
+# Test 1: Check Visual C++ version
 def check_visual_cpp():
     try:
-        # This will error if VS C++ redistributable isn't installed
-        import msvc
-        print("Visual C++ is installed")
-    except ImportError:
-        print("Visual C++ not found")
+        import winreg
+        # Check for 2015-2022 redistributable
+        key_path = r"SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64"
+        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path)
+        print("Visual C++ Redistributable is installed")
+        try:
+            version, _ = winreg.QueryValueEx(key, "Version")
+            print(f"Version: {version}")
+        except WindowsError:
+            pass
+        winreg.CloseKey(key)
+    except WindowsError:
+        print("Visual C++ Redistributable not found")
 
 # Test 2: Check ONNX
 def check_onnx():

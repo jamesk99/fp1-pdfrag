@@ -1,0 +1,54 @@
+project/
+├─ .env                         # Environment variables
+├─ README.md                    # Project overview and instructions
+├─ requirements.txt             # Dependencies
+
+├─ config/
+│  ├─ __init__.py
+│  ├─ settings.py               # Central configuration management
+
+├─ data/
+│  ├─ raw/                      # Original PDFs or other source files
+│  ├─ processed/                # Cleaned text or intermediate formats
+│  ├─ embeddings/               # Stored vector embeddings
+│  └─ metadata/                 # Any associated metadata
+
+├─ ingestion/
+│  ├─ __init__.py
+│  ├─ document_loader.py        # Handles loading PDFs or other docs
+│  ├─ pdf_parser.py             # Extracts text from PDFs
+│  ├─ text_cleaner.py           # Normalizes and preprocesses text
+
+├─ indexing/
+│  ├─ __init__.py
+│  ├─ embeddings.py             # Embedding generation logic
+│  ├─ vectorstore.py            # Vector database interaction
+│  └─ retriever.py              # Retrieval logic for querying the vector DB
+
+├─ models/
+│  ├─ __init__.py
+│  ├─ local_llm.py              # Integration with local LLM(s)
+│  ├─ prompt_engineering.py     # Prompt templates and refinements
+│  └─ inference.py              # Orchestrates model inference calls
+
+├─ query/
+│  ├─ __init__.py
+│  ├─ query_processor.py        # High-level query handling
+│  ├─ context_retriever.py      # Uses retriever to get relevant context
+│  └─ response_formatter.py     # Formats the final LLM output
+
+├─ app/
+│  ├─ __init__.py
+│  ├─ main.py                   # Application entry point
+│  ├─ api.py                    # API endpoints (e.g., REST, GraphQL)
+│  └─ ui/
+│     ├─ __init__.py
+│     └─ components.py          # UI components if applicable (web front-end)
+
+└─ tests/
+   ├─ __init__.py
+   ├─ test_ingestion.py
+   ├─ test_indexing.py
+   ├─ test_query.py
+   ├─ test_models.py
+   └─ test_app.py

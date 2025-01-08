@@ -1,6 +1,3 @@
-import sys
-import subprocess
-
 # Test 1: Check Visual C++ version
 def check_visual_cpp():
     try:

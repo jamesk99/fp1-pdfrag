@@ -1,14 +1,27 @@
-project/
-├─ .env                         # Environment variables
+FP1-PDFRAG/
+├─ .venv/                        # Python virtual environment and various dependencies
+├─ .gitignore                   # Files and directories to ignore in Git 
 ├─ README.md                    # Project overview and instructions
 ├─ requirements.txt             # Dependencies
+├─ .vs/                         # Visual Studio Code settings
+├─ .git/                        # Git repository metadata
+├─ directory                    # Project Directory Structure
+├─ .ipynb_checkpoints/          # Jupyter Notebook checkpoints
 
 ├─ config/
-│  ├─ __init__.py
+│  ├─ __init__.py               # Configuration package initialization
 │  ├─ settings.py               # Central configuration management
 
-├─ data/
-│  ├─ raw/                      # Original PDFs or other source files
+├─ RAG System/                  # Working Files for RAG System Project                      
+│  ├─ Research                  # 
+│  ├─                           # 
+│  ├─                           # 
+│  ├─                           # 
+│  ├─                           # 
+
+
+├─ Data/
+│  ├─ raw/                      # Original PDFs or other source files (7 pdf files)
 │  ├─ processed/                # Cleaned text or intermediate formats
 │  ├─ embeddings/               # Stored vector embeddings
 │  └─ metadata/                 # Any associated metadata
@@ -45,10 +58,18 @@ project/
 │     ├─ __init__.py
 │     └─ components.py          # UI components if applicable (web front-end)
 
-└─ tests/
-   ├─ __init__.py
-   ├─ test_ingestion.py
-   ├─ test_indexing.py
+├─ system_tests/               # End-to-end tests
+   ├─ __init__.py             # Test suite initialization
+   ├─ test_ingestion.py      # Tests for ingestion pipeline
+   ├─ test_indexing.py  
    ├─ test_query.py
    ├─ test_models.py
-   └─ test_app.py
+   ├─ test_app.py
+   ├─ tests.py   
+   ├─ tests.py
+   └─ notebooks/              # Jupyter notebooks for testing and exploration
+      ├─ .ipynb
+      ├─ .ipynb            
+      ├─ 
+      └─  
+└─

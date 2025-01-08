@@ -60,7 +60,7 @@ def check_if_model_is_available(model_name: str) -> None:
 
     if not available:
         try:
-           __import__(llm_model)
+           __pull_model(model_name)
         except Exception:
             raise Exception(
                 f"Unable to find model '{model_name}', please check the name and try again."      
